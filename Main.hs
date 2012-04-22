@@ -16,6 +16,7 @@ data LispVal  = Atom	    String
 	      | Number	    Integer
 	      | String	    String
 	      | Bool	    Bool
+		deriving (Show)
 
 parseString :: Parser LispVal
 parseString = do  char '"'
@@ -50,7 +51,7 @@ readExpr :: String -> String
 readExpr input =  case parse parseExpr "lisp" input of
 		  -- case parse (spaces >> symbol) "lisp" input of
 		    Left err  -> "No match: " ++ show err
-		    Right val -> "Found value"
+		    Right val -> "Found value" ++ show val
 
 _print s = putStrLn ("Hello, " ++ s)
 _convert s = show(1 + (read s)::Integer)
