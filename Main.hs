@@ -20,9 +20,14 @@ data LispVal  = Atom	    String
 
 parseString :: Parser LispVal
 parseString = do  char '"'
-		  x <- many (noneOf "\"")
+		  x <- many $ escape
 		  char '"'
 		  return $ String x
+	    where escape = replace <|> noneOf "\""
+		  replace = char '\\' >> choice (zipWith replacer codes replaceWith) 
+		  replacer c r = char c >> return r
+		  codes = ['b',  'n',  'f',  'r',  't',  '\\', '\"', '/']
+		  replaceWith = ['\b', '\n', '\f', '\r', '\t', '\\', '\"', '/']
 
 parseAtom :: Parser LispVal
 parseAtom = do	first <- letter <|> symbol
