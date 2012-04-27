@@ -3,6 +3,7 @@ import System.Environment
 import Text.ParserCombinators.Parsec hiding (spaces, (<|>))
 import Monad
 import Control.Applicative hiding (many)
+import Numeric
 
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=?>@^_~#"
@@ -14,6 +15,7 @@ data LispVal  = Atom	    String
 	      | List	    [LispVal]
 	      | DottedList  [LispVal] LispVal
 	      | Number	    Integer
+	      | Float	    Float
 	      | String	    String
 	      | Bool	    Bool
 	      | Char	    Char
@@ -48,16 +50,28 @@ parseNumber1 = (Number . read) <$> many1 digit
 parseNumber2 :: Parser LispVal
 parseNumber2 = many1 digit >>= (return . Number . read)
 
+-- TODO - make this better
+parseFloat :: Parser LispVal
+parseFloat = do	x <- many1 digit
+		y <- char '.'
+		z <- many1 digit
+		let s = x ++ [y] ++ z
+		return $ Float $ fst $ head $ readFloat $ s
+
 parseChar :: Parser LispVal
 parseChar = do	char '\''
 		x <- letter
 		char '\'' 
 		return $ Char x
 
+-- parseList :: Parser LispVal
+-- parseList = liftM List $ sepBy parseExpr spaces
+
 parseExpr :: Parser LispVal
 parseExpr = parseChar
 	  <|> parseAtom
 	  <|> parseString
+	  <|> parseFloat
 	  <|> parseNumber
 
 readExpr :: String -> String
