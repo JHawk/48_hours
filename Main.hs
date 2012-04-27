@@ -16,7 +16,8 @@ data LispVal  = Atom	    String
 	      | Number	    Integer
 	      | String	    String
 	      | Bool	    Bool
-		deriving (Show)
+	      | Char	    Char
+		deriving (Show) 
 
 parseString :: Parser LispVal
 parseString = do  char '"'
@@ -47,8 +48,15 @@ parseNumber1 = (Number . read) <$> many1 digit
 parseNumber2 :: Parser LispVal
 parseNumber2 = many1 digit >>= (return . Number . read)
 
+parseChar :: Parser LispVal
+parseChar = do	char '\''
+		x <- letter
+		char '\'' 
+		return $ Char x
+
 parseExpr :: Parser LispVal
-parseExpr = parseAtom
+parseExpr = parseChar
+	  <|> parseAtom
 	  <|> parseString
 	  <|> parseNumber
 
@@ -58,7 +66,7 @@ readExpr input =  case parse parseExpr "lisp" input of
 		    Left err  -> "No match: " ++ show err
 		    Right val -> "Found value" ++ show val
 
-_print s = putStrLn ("Hello, " ++ s)
+_print s = putStrLn s
 _convert s = show(1 + (read s)::Integer)
 
 main :: IO ()
