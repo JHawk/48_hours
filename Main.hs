@@ -64,15 +64,32 @@ parseChar = do	char '\''
 		char '\'' 
 		return $ Char x
 
--- parseList :: Parser LispVal
--- parseList = liftM List $ sepBy parseExpr spaces
+parseDottedList :: Parser LispVal
+parseDottedList = do 
+  head <- endBy parseExpr spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
+
+parseQuoted :: Parser LispVal
+parseQuoted = do 
+  char '\''
+  x <- parseExpr
+  return $ List [Atom "quote", x]
+
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
 
 parseExpr :: Parser LispVal
 parseExpr = parseChar
 	  <|> parseAtom
 	  <|> parseString
-	  <|> parseFloat
-	  <|> parseNumber
+	  <|> do  x <- (try parseFloat) <|> (parseNumber) 
+		  return x
+	  <|> parseQuoted
+	  <|> do  char '('
+		  x <- (try parseList) <|> parseDottedList
+		  char ')'
+		  return x
 
 readExpr :: String -> String
 readExpr input =  case parse parseExpr "lisp" input of
